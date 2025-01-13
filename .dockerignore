@@ -1,0 +1,19 @@
+# Ignore Python bytecode files
+*.pyc
+
+# Ignore virtual environment directories
+venv/
+.env
+
+# Ignore development and local configuration files
+instance/
+*.log
+*.cfg
+
+# test
+test
+
+# logs
+logs
+
+# Ignore any other files or directories specific to your development environment
