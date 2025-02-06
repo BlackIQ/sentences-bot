@@ -7,3 +7,9 @@ services:
       dockerfile: Dockerfile
     container_name: quote-bot
     restart: always
+    networks:
+      - application-network
+
+networks:
+  application-network:
+    external: true
