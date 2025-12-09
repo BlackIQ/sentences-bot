@@ -11,7 +11,7 @@ import os
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger()
 
-APP_MODE = "development"  # production | development
+APP_MODE = "production"  # production | development
 APP_DATA = {
     "production": {
         "token": "8163646456:AAHOopVsLpZ5uvCjScaz4uB0Q-axKBxUgP0",
