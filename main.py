@@ -1,5 +1,7 @@
 import logging
 import asyncio
+import csv
+import os
 
 from bs4 import BeautifulSoup
 import requests
@@ -7,21 +9,29 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
+def save_user_to_csv(data: dict, filename="/data/data.csv"):
+    file_exists = os.path.isfile(filename)
+
+    with open(filename, mode="a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=data.keys())
+
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow(data)
+
 def extract_quote():
     url = "https://time.ir"
 
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    # --- Extract quote text ---
     quote_container = soup.find("div", class_="ExpandableText_text__R_Pv6")
     if not quote_container:
-        # fallback: sometimes both classes may be needed
         quote_container = soup.find("div", class_="ExpandableText_text__R_Pv6 ExpandableText_clamped__m5UVT")
 
     quote_text = quote_container.get_text(strip=True) if quote_container else "Quote not found."
 
-    # --- Extract author name + link ---
     author_div = soup.find("div", class_="BrainyQuoteAuthor_root__6iSkt")
 
     if author_div:
@@ -53,7 +63,9 @@ def extract_user(update: Update, command: str):
     }
     
     logger.info(f"Command: {command} - Extracted data: {data}")
-    
+
+    save_user_to_csv(data)
+
     return data
     
 
@@ -100,7 +112,7 @@ async def get_quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 main_token = "8163646456:AAHOopVsLpZ5uvCjScaz4uB0Q-axKBxUgP0"
 test_token = "8333153231:AAHScCr2mfl4_egBmOmd8gjG--qt4Pnx0hE"
 
-app = ApplicationBuilder().token(test_token).build()
+app = ApplicationBuilder().token(main_token).build()
 
 app.add_handler(CommandHandler("start", start))
 

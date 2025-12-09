@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: quote-bot
+    volumes:
+      - ./data:/data
     restart: always
     networks:
       - application-network
