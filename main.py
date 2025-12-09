@@ -8,23 +8,34 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 def extract_quote():
-    url = "https://new.time.ir"
+    url = "https://time.ir"
 
     response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+    # --- Extract quote text ---
+    quote_container = soup.find("div", class_="ExpandableText_text__R_Pv6")
+    if not quote_container:
+        # fallback: sometimes both classes may be needed
+        quote_container = soup.find("div", class_="ExpandableText_text__R_Pv6 ExpandableText_clamped__m5UVT")
 
-    quote_div = soup.find('div', class_='BrainyQuoteContext_root__text__8Y_8Y')
-    quote_text = quote_div.get_text(strip=True) if quote_div else "Quote not found."
+    quote_text = quote_container.get_text(strip=True) if quote_container else "Quote not found."
 
-    author_div = soup.find('div', class_='BrainyQuoteAuthor_root__6iSkt')
-    author_name = author_div.find('a').get_text(strip=True) if author_div else "Author not found."
-    author_href = author_div.find('a')['href'] if author_div else "Link not found."
+    # --- Extract author name + link ---
+    author_div = soup.find("div", class_="BrainyQuoteAuthor_root__6iSkt")
+
+    if author_div:
+        a_tag = author_div.find("a")
+        author_name = a_tag.get_text(strip=True) if a_tag else "Author not found."
+        author_href = a_tag["href"] if a_tag and a_tag.has_attr("href") else "Link not found."
+    else:
+        author_name = "Author not found."
+        author_href = "Link not found."
 
     return {
         "quote": quote_text,
         "author": author_name,
-        "refrence": author_href
+        "reference": author_href
     }
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
