@@ -1,6 +1,7 @@
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from telegram import Update
 from bs4 import BeautifulSoup
+from datetime import datetime
 import requests
 import logging
 import asyncio
@@ -18,7 +19,7 @@ APP_DATA = {
     },
     "development": {
         "token": "8333153231:AAHScCr2mfl4_egBmOmd8gjG--qt4Pnx0hE",
-        "file_path": "./data.csv"
+        "file_path": "./data/data.csv"
     }
 }
 
@@ -67,12 +68,13 @@ def extract_user(update: Update, command: str):
         
     data = {
         "command": command,
-        "id": user.id,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "username": user.username,
-        "is_premium": user.is_premium,
-        "chat_id": chat.id,
+        "id": user.id if user.id else 0,
+        "first_name": user.first_name if user.first_name else "",
+        "last_name": user.last_name if user.last_name else "",
+        "username": user.username if user.username else "",
+        "is_premium": user.is_premium if user.is_premium is True else 0,
+        "chat_id": chat.id if chat.id else 0,
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
     }
     
     logger.info(f"Command: {command} - Extracted data: {data}")
