@@ -16,5 +16,4 @@ test
 # logs
 logs
 
-# Ignore any other files or directories specific to your development environment
-data.csv
+data
