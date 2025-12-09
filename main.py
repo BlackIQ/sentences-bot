@@ -38,10 +38,30 @@ def extract_quote():
         "reference": author_href
     }
 
+def extract_user(update: Update, command: str):
+    user = update.message.from_user
+    chat = update.message.chat
+        
+    data = {
+        "command": command,
+        "id": user.id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "username": user.username,
+        "is_premium": user.is_premium,
+        "chat_id": chat.id,
+    }
+    
+    logger.info(f"Command: {command} - Extracted data: {data}")
+    
+    return data
+    
+
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    extract_user(update, "start")
     logger.info(f"Received /start command from user {update.message.from_user.id}")
     
     messages = [
@@ -57,8 +77,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(message)
 
 async def get_quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.message.from_user.id
-    chat_id = update.message.chat.id
+    info = extract_user(update, "quote")
+    
+    user_id = info["id"]
+    chat_id = info["chat_id"]
     
     logger.info(f"Quote command received from user {user_id} with chat ID {chat_id}")
     
@@ -75,34 +97,14 @@ async def get_quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     await asyncio.sleep(0.5)
         
-async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.message.chat.id
-    logger.info(f"Chat command received from user {update.message.from_user.id} with chat ID {chat_id}")
-    
-    messages = [f"💬 Chat ID: {chat_id}"]
-    await update.message.reply_text("\n".join(messages), reply_to_message_id=update.message.message_id)
+main_token = "8163646456:AAHOopVsLpZ5uvCjScaz4uB0Q-axKBxUgP0"
+test_token = "8333153231:AAHScCr2mfl4_egBmOmd8gjG--qt4Pnx0hE"
 
-async def me(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.message.from_user
-    logger.info(f"User info requested by {user.id}")
-    
-    messages = [
-        f"🆔 User ID: {user.id}",
-        f"👤 First Name: {user.first_name}",
-        f"👥 Last Name: {user.last_name or 'N/A'}",
-        f"📛 Username: @{user.username or 'N/A'}",
-        f"⭐️ Premium Status: {'Yes 🎉' if user.is_premium else 'No 😢'}",
-    ]
-    await update.message.reply_text("\n".join(messages), reply_to_message_id=update.message.message_id)
-
-app = ApplicationBuilder().token("8163646456:AAHOopVsLpZ5uvCjScaz4uB0Q-axKBxUgP0").build()
+app = ApplicationBuilder().token(test_token).build()
 
 app.add_handler(CommandHandler("start", start))
 
 app.add_handler(CommandHandler("quote", get_quote))
-
-app.add_handler(CommandHandler("chat", chat))
-app.add_handler(CommandHandler("me", me))
 
 logger.info("Bot is starting...")
 app.run_polling()
