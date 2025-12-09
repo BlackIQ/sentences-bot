@@ -1,15 +1,28 @@
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import Update
+from bs4 import BeautifulSoup
+import requests
 import logging
 import asyncio
 import csv
 import os
 
-from bs4 import BeautifulSoup
-import requests
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger()
 
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+APP_MODE = "development"  # production | development
+APP_DATA = {
+    "production": {
+        "token": "8163646456:AAHOopVsLpZ5uvCjScaz4uB0Q-axKBxUgP0",
+        "file_path": "/data/data.csv"
+    },
+    "development": {
+        "token": "8333153231:AAHScCr2mfl4_egBmOmd8gjG--qt4Pnx0hE",
+        "file_path": "./data.csv"
+    }
+}
 
-def save_user_to_csv(data: dict, filename="/data/data.csv"):
+def save_user_to_csv(data: dict, filename=APP_DATA[APP_MODE]["file_path"]):
     file_exists = os.path.isfile(filename)
 
     with open(filename, mode="a", newline="", encoding="utf-8") as f:
@@ -67,10 +80,6 @@ def extract_user(update: Update, command: str):
     save_user_to_csv(data)
 
     return data
-    
-
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     extract_user(update, "start")
@@ -109,14 +118,12 @@ async def get_quote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     await asyncio.sleep(0.5)
         
-main_token = "8163646456:AAHOopVsLpZ5uvCjScaz4uB0Q-axKBxUgP0"
-test_token = "8333153231:AAHScCr2mfl4_egBmOmd8gjG--qt4Pnx0hE"
-
-app = ApplicationBuilder().token(main_token).build()
+app = ApplicationBuilder().token(APP_DATA[APP_MODE]["token"]).build()
 
 app.add_handler(CommandHandler("start", start))
 
 app.add_handler(CommandHandler("quote", get_quote))
 
 logger.info("Bot is starting...")
+logger.info(f"Running in {APP_MODE} mode.")
 app.run_polling()
